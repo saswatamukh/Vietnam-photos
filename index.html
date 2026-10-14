@@ -92,6 +92,10 @@ const ROWS = [
 const CAPTIONS = {
   // DSCF0132: "Hanoi, early morning",
 };
+
+/* How strong the background tint gets (0 = none, 1 = full photo colour).
+   0.25 to 0.35 gives a soft wash. */
+const TINT_STRENGTH = 0.30;
 /* ============================================================ */
 
 const $ = id => document.getElementById(id);
@@ -101,7 +105,36 @@ const gallery = $("gallery");
 const PHOTOS = ROWS.flat().map(name => ({ file: name + ".jpg", caption: CAPTIONS[name] || "" }));
 $("total").textContent = PHOTOS.length + " photographs";
 
-// Build rows
+/* ---------- Find the main colour of a photo ---------- */
+function mainColor(img) {
+  try {
+    const s = 40;
+    const c = document.createElement("canvas");
+    c.width = c.height = s;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, s, s);
+    const d = ctx.getImageData(0, 0, s, s).data;
+    const bins = {};
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      if (max < 35 || min > 225) continue;               // skip near-black and near-white
+      const sat = (max - min) / max;
+      const w = 0.15 + sat;                              // favour colourful pixels
+      const key = (r >> 5) << 6 | (g >> 5) << 3 | (b >> 5);
+      const bin = bins[key] || (bins[key] = { w: 0, r: 0, g: 0, b: 0 });
+      bin.w += w; bin.r += r * w; bin.g += g * w; bin.b += b * w;
+    }
+    let best = null;
+    for (const k in bins) if (!best || bins[k].w > best.w) best = bins[k];
+    if (!best) return null;
+    return [best.r / best.w, best.g / best.w, best.b / best.w];
+  } catch (e) {
+    return null;
+  }
+}
+
+/* ---------- Build rows ---------- */
 const figures = [];
 let photoIndex = 0;
 ROWS.forEach(names => {
@@ -117,7 +150,11 @@ ROWS.forEach(names => {
     img.alt = ph.caption || "Vietnam photo " + (idx + 1);
     img.loading = "lazy";
     img.decoding = "async";
-    img.addEventListener("load", () => fig.style.setProperty("--r", img.naturalWidth / img.naturalHeight));
+    img.addEventListener("load", () => {
+      fig.style.setProperty("--r", img.naturalWidth / img.naturalHeight);
+      fig._color = mainColor(img);
+      updateBackground();
+    });
     img.addEventListener("click", () => openLb(idx));
     fig.appendChild(img);
     if (ph.caption) {
@@ -131,7 +168,7 @@ ROWS.forEach(names => {
   gallery.appendChild(row);
 });
 
-// Fade-in on scroll
+/* ---------- Fade-in on scroll ---------- */
 if ("IntersectionObserver" in window) {
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
@@ -141,12 +178,46 @@ if ("IntersectionObserver" in window) {
   figures.forEach(f => f.classList.add("in"));
 }
 
-// Back to top
+/* ---------- Background tint from the photo in view ---------- */
+let lastBg = "";
+let bgQueued = false;
+function updateBackground() {
+  bgQueued = false;
+  const vh = window.innerHeight;
+  const mid = vh / 2;
+
+  // photo whose centre is closest to the middle of the screen
+  let best = null, bestDist = Infinity;
+  for (const f of figures) {
+    const r = f.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > vh) continue;
+    const dist = Math.abs((r.top + r.bottom) / 2 - mid);
+    if (dist < bestDist) { bestDist = dist; best = f; }
+  }
+
+  // stays white at the top, fades in as you start scrolling
+  const ramp = Math.min(1, window.scrollY / (vh * 0.7));
+  let bg = "rgb(255, 255, 255)";
+  if (best && best._color) {
+    const a = TINT_STRENGTH * ramp;
+    const [r, g, b] = best._color;
+    bg = "rgb(" + [r, g, b].map(v => Math.round(255 * (1 - a) + v * a)).join(", ") + ")";
+  }
+  if (bg !== lastBg) { document.body.style.backgroundColor = bg; lastBg = bg; }
+}
+function queueBg() {
+  if (!bgQueued) { bgQueued = true; requestAnimationFrame(updateBackground); }
+}
+addEventListener("scroll", queueBg, { passive: true });
+addEventListener("resize", queueBg);
+updateBackground();
+
+/* ---------- Back to top ---------- */
 const topBtn = $("toTopBtn");
 addEventListener("scroll", () => { topBtn.hidden = window.scrollY < 700; }, { passive: true });
 topBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-// Lightbox
+/* ---------- Lightbox ---------- */
 const lb = $("lb"), lbImg = $("lbImg");
 let cur = 0;
 function showLb(n) {

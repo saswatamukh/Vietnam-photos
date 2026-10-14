@@ -1,24 +1,45 @@
 :root {
-  --bg: #fbfeff;
+  --bg: #ffffff;
   --tint: #e2f6f8;
   --cyan: #19b5c4;
   --deep: #0a3c42;
   --muted: #5f868c;
   --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
   --sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* positions of the drifting cyan glows (updated by the script on scroll) */
+  --x1: 80%; --y1: 20%;
+  --x2: 15%; --y2: 70%;
 }
 
 * { box-sizing: border-box; margin: 0; }
 html { scroll-behavior: smooth; }
 
+/* Page-long wash: white -> light cyan -> white, repeating all the way down */
 body {
   font-family: var(--sans);
   color: var(--deep);
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(
+    180deg,
+    #ffffff 0px,
+    #eefafb 450px,
+    #d9f3f6 800px,
+    #eefafb 1150px,
+    #ffffff 1600px
+  );
+}
+
+/* Soft cyan glows that drift as you scroll */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
-    radial-gradient(900px 500px at 85% -5%, var(--tint), transparent 70%),
-    radial-gradient(700px 500px at -10% 40%, rgba(25, 181, 196, .07), transparent 70%),
-    var(--bg);
-  background-repeat: no-repeat;
+    radial-gradient(60vmax 45vmax at var(--x1) var(--y1), rgba(25, 181, 196, .16), transparent 70%),
+    radial-gradient(55vmax 40vmax at var(--x2) var(--y2), rgba(80, 215, 225, .14), transparent 70%);
 }
 
 /* Hero */
@@ -129,7 +150,7 @@ figcaption {
   font-style: italic;
   font-size: 1.6rem;
   color: var(--muted);
-  border-top: 1px solid rgba(25, 181, 196, .2);
+  border-top: 1px solid rgba(25, 181, 196, .25);
   max-width: 400px;
   margin: 0 auto;
 }

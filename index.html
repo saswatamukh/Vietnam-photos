@@ -37,94 +37,80 @@
 
 <script>
 /* ============================================================
-   PHOTO LIST
-   Photos sit in the same folder as this index.html.
-   Add a caption to any entry like:  { file: "DSCF0132.jpg", caption: "Hanoi" }
+   LAYOUT
+   Each [ ... ] is one row, shown top to bottom.
+   - one name  = one big photo
+   - two names = two photos side by side
+   Names are file names without ".jpg".
    ============================================================ */
-const PHOTOS = [
-  { file: "DSCF0132.jpg" },
-  { file: "DSCF0136.jpg" },
-  { file: "DSCF0137.jpg" },
-  { file: "DSCF0142.jpg" },
-  { file: "DSCF0147.jpg" },
-  { file: "DSCF0149.jpg" },
-  { file: "DSCF0152.jpg" },
-  { file: "DSCF0153.jpg" },
-  { file: "DSCF0163.jpg" },
-  { file: "DSCF0168.jpg" },
-  { file: "DSCF0171.jpg" },
-  { file: "DSCF0175.jpg" },
-  { file: "DSCF0187.jpg" },
-  { file: "DSCF0243.jpg" },
-  { file: "DSCF0265.jpg" },
-  { file: "DSCF0274.jpg" },
-  { file: "DSCF0285.jpg" },
-  { file: "DSCF0290.jpg" },
-  { file: "DSCF0300.jpg" },
-  { file: "DSCF0306.jpg" },
-  { file: "DSCF0323.jpg" },
-  { file: "DSCF0327.jpg" },
-  { file: "DSCF0354.jpg" },
-  { file: "DSCF0390.jpg" },
-  { file: "DSCF0405.jpg" },
-  { file: "DSCF0407.jpg" },
-  { file: "DSCF0408.jpg" },
-  { file: "DSCF0409.jpg" },
-  { file: "DSCF0416.jpg" },
-  { file: "DSCF0451.jpg" },
-  { file: "DSCF0452.jpg" },
-  { file: "DSCF0463.jpg" },
-  { file: "DSCF0466.jpg" },
-  { file: "DSCF0470.jpg" },
-  { file: "DSCF0471.jpg" },
-  { file: "DSCF0518.jpg" },
-  { file: "DSCF0530.jpg" },
-  { file: "DSCF0552.jpg" },
-  { file: "DSCF0566.jpg" },
-  { file: "DSCF0575.jpg" },
-  { file: "DSCF0597.jpg" },
-  { file: "DSCF0599.jpg" },
-  { file: "DSCF0604.jpg" },
-  { file: "DSCF0607.jpg" },
-  { file: "DSCF0618.jpg" },
-  { file: "DSCF0625.jpg" },
-  { file: "DSCF0631.jpg" },
-  { file: "DSCF0646.jpg" },
-  { file: "DSCF0652.jpg" },
-  { file: "DSCF0669.jpg" },
-  { file: "DSCF0675.jpg" },
-  { file: "DSCF0683.jpg" },
-  { file: "DSCF0692.jpg" },
-  { file: "DSCF0702.jpg" },
-  { file: "DSCF0709.jpg" },
-  { file: "DSCF0718.jpg" },
-  { file: "DSCF0719.jpg" },
-  { file: "DSCF0720.jpg" },
-  { file: "DSCF0738.jpg" },
-  { file: "DSCF0754.jpg" },
-  { file: "Untitled%20design.jpg" },
-  { file: "imgcompressors-edited-image-1791903300657.jpg" },
+const ROWS = [
+  ["DSCF0132"],
+  ["DSCF0136", "DSCF0137"],
+  ["DSCF0142"],
+  ["DSCF0147"],
+  ["DSCF0149", "DSCF0152"],
+  ["DSCF0153"],
+  ["DSCF0163", "DSCF0168"],
+  ["DSCF0171"],
+  ["DSCF0175"],
+  ["DSCF0187"],
+  ["DSCF0243", "DSCF0265"],
+  ["DSCF0274"],
+  ["DSCF0285", "DSCF0290"],
+  ["DSCF0300"],
+  ["DSCF0306", "DSCF0323"],
+  ["DSCF0327"],
+  ["DSCF0354"],
+  ["DSCF0390", "DSCF0405"],
+  ["DSCF0407"],
+  ["DSCF0408", "DSCF0409"],
+  ["DSCF0416"],
+  ["DSCF0452"],
+  ["DSCF0463", "DSCF0466"],
+  ["DSCF0470"],
+  ["DSCF0471", "DSCF0518"],
+  ["DSCF0530"],
+  ["DSCF0552"],
+  ["DSCF0566", "DSCF0575"],
+  ["DSCF0597"],
+  ["DSCF0599", "DSCF0604"],
+  ["DSCF0607"],
+  ["DSCF0618"],
+  ["DSCF0625", "DSCF0631"],
+  ["DSCF0646"],
+  ["DSCF0652", "DSCF0669"],
+  ["DSCF0675"],
+  ["DSCF0683"],
+  ["DSCF0692", "DSCF0702"],
+  ["DSCF0709"],
+  ["DSCF0718", "DSCF0719"],
+  ["DSCF0720"],
+  ["DSCF0738"],
+  ["DSCF0754"],
 ];
 
-/* Layout rhythm: 1 = one big photo, 2 = two side by side.
-   The pattern repeats down the page. Change it however you like. */
-const PATTERN = [1, 2, 1, 1, 2, 1, 2, 1];
+/* Optional captions, for example:  DSCF0132: "Hanoi, early morning"  */
+const CAPTIONS = {
+  // DSCF0132: "Hanoi, early morning",
+};
 /* ============================================================ */
 
 const $ = id => document.getElementById(id);
 const gallery = $("gallery");
+
+// Flat list in display order (used by the full-screen viewer)
+const PHOTOS = ROWS.flat().map(name => ({ file: name + ".jpg", caption: CAPTIONS[name] || "" }));
 $("total").textContent = PHOTOS.length + " photographs";
 
 // Build rows
 const figures = [];
-let photoIndex = 0, patternIndex = 0;
-while (photoIndex < PHOTOS.length) {
-  const n = Math.min(PATTERN[patternIndex++ % PATTERN.length], PHOTOS.length - photoIndex);
+let photoIndex = 0;
+ROWS.forEach(names => {
   const row = document.createElement("div");
-  row.className = "row r" + n;
-  for (let k = 0; k < n; k++, photoIndex++) {
+  row.className = "row r" + names.length;
+  names.forEach(() => {
     const ph = PHOTOS[photoIndex];
-    const idx = photoIndex;
+    const idx = photoIndex++;
     const fig = document.createElement("figure");
     fig.className = "item";
     const img = new Image();
@@ -142,9 +128,9 @@ while (photoIndex < PHOTOS.length) {
     }
     row.appendChild(fig);
     figures.push(fig);
-  }
+  });
   gallery.appendChild(row);
-}
+});
 
 // Fade-in on scroll
 if ("IntersectionObserver" in window) {

@@ -37,12 +37,15 @@
 
 <script>
 /* ============================================================
-   FILE NAMES FOR THE "UNTITLED DESIGN" PHOTOS
+   FILE NAMES FOR THE NON-CAMERA PHOTOS
    Names are written without ".jpg". A space is written as %20.
+   If a file is not a .jpg, write the ending too,
+   for example "Untitled%20design%204.png"
    ============================================================ */
 const UD  = "Untitled%20design";
-const UD4 = "Untitled%20design4";
+const UD4 = "Untitled%20design%204";
 const UD5 = "Untitled%20design5";
+const IMG = "imgcompressors-edited-image-1791903300657";
 
 /* ============================================================
    LAYOUT
@@ -76,7 +79,6 @@ const ROWS = [
   ["DSCF0470"],
   ["DSCF0471", "DSCF0518"],
   ["DSCF0530"],
-  ["DSCF0552"],
   ["DSCF0566", "DSCF0575"],
   ["DSCF0607"],
   ["DSCF0618"],
@@ -87,6 +89,7 @@ const ROWS = [
   ["DSCF0669"],
   ["DSCF0675", "DSCF0683"],
   ["DSCF0692"],
+  [IMG],
   ["DSCF0702", "DSCF0709"],
   ["DSCF0718", "DSCF0719"],
   ["DSCF0720"],
@@ -108,7 +111,10 @@ const $ = id => document.getElementById(id);
 const gallery = $("gallery");
 
 // Flat list in display order (used by the full-screen viewer)
-const PHOTOS = ROWS.flat().map(name => ({ file: name + ".jpg", caption: CAPTIONS[name] || "" }));
+const PHOTOS = ROWS.flat().map(name => ({
+  file: /\.\w+$/.test(name) ? name : name + ".jpg",
+  caption: CAPTIONS[name] || ""
+}));
 $("total").textContent = PHOTOS.length + " photographs";
 
 /* ---------- Find the main colour of a photo ---------- */
